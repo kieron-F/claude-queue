@@ -5,8 +5,12 @@
   "main": "src/tray.js",
   "scripts": {
     "start": "node src/tray.js",
+    "start:silent": "node src/tray.js --no-open",
+    "dashboard": "node -e \"require('open')('http://127.0.0.1:51477')\"",
     "setup": "node setup.js",
-    "remove": "node setup.js --remove"
+    "remove": "node setup.js --remove",
+    "autostart": "node autostart.js",
+    "autostart:remove": "node autostart.js --remove"
   },
   "keywords": [
     "claude",

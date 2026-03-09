@@ -8,227 +8,349 @@
 
     body {
       font-family: 'Segoe UI', -apple-system, sans-serif;
-      font-size: 13px;
-      background: #1e1e1e;
-      color: #cccccc;
+      font-size: 14px;
+      background: #1a1a2e;
+      color: #e0e0e0;
       min-height: 100vh;
     }
 
-    /* VS Code-style title bar */
-    .titlebar {
-      background: #323233;
-      padding: 6px 16px;
+    /* Header */
+    .header {
+      background: #16213e;
+      padding: 12px 20px;
       display: flex;
       align-items: center;
-      gap: 10px;
-      border-bottom: 1px solid #2b2b2b;
+      gap: 12px;
+      border-bottom: 1px solid #0f3460;
       user-select: none;
     }
 
-    .titlebar .logo {
-      width: 16px;
-      height: 16px;
-      opacity: 0.8;
-    }
-
-    .titlebar .title {
-      font-size: 12px;
-      color: #969696;
+    .header .title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #e0e0e0;
       flex: 1;
     }
 
-    .titlebar .badge {
-      background: #0078d4;
+    .header .badge {
+      background: #e94560;
       color: #fff;
-      font-size: 10px;
-      font-weight: 600;
-      padding: 1px 6px;
-      border-radius: 10px;
-      min-width: 18px;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 2px 10px;
+      border-radius: 12px;
+      min-width: 24px;
       text-align: center;
     }
 
-    .titlebar .badge.none { background: #3c3c3c; color: #666; }
+    .header .badge.none { background: #2a2a4a; color: #555; }
 
-    /* VS Code sidebar style */
-    .sidebar-header {
-      padding: 8px 16px 6px;
-      font-size: 11px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      color: #bbbbbb;
-      background: #252526;
-      border-bottom: 1px solid #2b2b2b;
+    .header .actions {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
+      gap: 6px;
     }
 
-    .sidebar-header .actions {
-      display: flex;
-      gap: 4px;
-    }
-
-    .sidebar-header button {
-      background: none;
-      border: none;
-      color: #888;
+    .header button {
+      background: #2a2a4a;
+      border: 1px solid #333366;
+      color: #aaa;
       cursor: pointer;
       font-size: 12px;
-      padding: 2px 6px;
-      border-radius: 3px;
+      padding: 4px 12px;
+      border-radius: 6px;
+      transition: all 0.15s;
     }
 
-    .sidebar-header button:hover { background: #383838; color: #ccc; }
+    .header button:hover { background: #333366; color: #e0e0e0; }
 
-    /* Job list — VS Code tree view style */
-    .jobs {
-      background: #252526;
-      min-height: calc(100vh - 65px);
+    /* Summary stats */
+    .stats {
+      display: flex;
+      gap: 12px;
+      padding: 12px 20px;
+      background: #16213e;
+      border-bottom: 1px solid #0f3460;
+    }
+
+    .stat {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: #888;
+    }
+
+    .stat .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    .stat .dot.waiting { background: #f0a500; }
+    .stat .dot.working { background: #4da6ff; }
+
+    /* Cards container */
+    .cards {
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-height: calc(100vh - 140px);
+      padding-bottom: 50px;
     }
 
     .section-label {
-      padding: 4px 16px;
       font-size: 11px;
-      font-weight: 600;
-      color: #888;
+      font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.3px;
-      background: #252526;
-      border-top: 1px solid #2b2b2b;
-      margin-top: 2px;
+      letter-spacing: 1px;
+      color: #666;
+      padding: 8px 0 4px;
     }
 
-    .section-label:first-child { border-top: none; margin-top: 0; }
+    .section-label:first-child { padding-top: 0; }
 
-    .job {
-      padding: 4px 16px 4px 24px;
+    /* Job card */
+    .card {
+      background: #16213e;
+      border: 1px solid #0f3460;
+      border-radius: 10px;
+      padding: 14px 16px;
       cursor: pointer;
       display: flex;
       align-items: center;
-      gap: 8px;
-      transition: background 0.1s;
-      border-left: 2px solid transparent;
+      gap: 14px;
+      transition: all 0.15s;
+      position: relative;
+      overflow: hidden;
     }
 
-    .job:hover {
-      background: #2a2d2e;
+    .card:hover {
+      background: #1a2744;
+      border-color: #1a5276;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     }
 
-    .job:active {
-      background: #37373d;
+    .card:active {
+      transform: translateY(0);
     }
 
-    .job.waiting { border-left-color: #cca700; }
-    .job.working { border-left-color: #3794ff; }
+    /* Left accent stripe */
+    .card::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+    }
 
+    .card.waiting::before { background: #f0a500; }
+    .card.working::before { background: #4da6ff; }
+    .card.done::before { background: #4caf50; }
+
+    /* Status indicator */
     .indicator {
-      width: 6px;
-      height: 6px;
+      width: 10px;
+      height: 10px;
       border-radius: 50%;
       flex-shrink: 0;
     }
 
-    .indicator.waiting { background: #cca700; }
-    .indicator.working { background: #3794ff; animation: pulse 2s infinite; }
-    .indicator.done { background: #89d185; }
+    .indicator.waiting {
+      background: #f0a500;
+      box-shadow: 0 0 8px rgba(240,165,0,0.5);
+      animation: glow-amber 2s infinite;
+    }
 
-    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+    .indicator.working {
+      background: #4da6ff;
+      animation: pulse 1.5s infinite;
+    }
 
-    .info { flex: 1; min-width: 0; }
+    .indicator.done { background: #4caf50; }
 
-    .repo {
-      font-size: 13px;
-      color: #e8e8e8;
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    @keyframes glow-amber {
+      0%, 100% { box-shadow: 0 0 6px rgba(240,165,0,0.4); }
+      50% { box-shadow: 0 0 14px rgba(240,165,0,0.7); }
+    }
+
+    /* Card content */
+    .card-info { flex: 1; min-width: 0; }
+
+    .repo-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: #fff;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      line-height: 22px;
+      line-height: 1.4;
     }
 
-    .message {
-      font-size: 11px;
-      color: #808080;
+    .card-message {
+      font-size: 12px;
+      color: #8899aa;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      line-height: 16px;
+      line-height: 1.4;
+      margin-top: 2px;
     }
 
-    .meta {
+    /* Right side meta */
+    .card-meta {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
       flex-shrink: 0;
     }
 
-    .time {
-      font-size: 11px;
-      color: #555;
+    .time-waiting {
+      font-size: 12px;
+      font-weight: 600;
+      color: #f0a500;
+      white-space: nowrap;
     }
 
-    .dismiss {
+    .time-working {
+      font-size: 12px;
+      color: #4da6ff;
+      white-space: nowrap;
+    }
+
+    .time-done {
+      font-size: 12px;
+      color: #555;
+      white-space: nowrap;
+    }
+
+    .focus-btn {
+      background: #0f3460;
+      border: 1px solid #1a5276;
+      color: #4da6ff;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 6px;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+
+    .focus-btn:hover { background: #1a5276; color: #fff; }
+
+    .dismiss-btn {
       opacity: 0;
       background: none;
       border: none;
       color: #555;
       cursor: pointer;
-      font-size: 14px;
-      padding: 0 4px;
-      border-radius: 3px;
+      font-size: 16px;
+      padding: 2px 6px;
+      border-radius: 4px;
       line-height: 1;
+      transition: all 0.15s;
     }
 
-    .job:hover .dismiss { opacity: 1; }
-    .dismiss:hover { color: #f48771; background: #383838; }
+    .card:hover .dismiss-btn { opacity: 0.7; }
+    .dismiss-btn:hover { opacity: 1 !important; color: #e94560; background: rgba(233,69,96,0.1); }
 
+    /* Empty state */
     .empty {
-      padding: 40px 20px;
-      text-align: center;
-      color: #555;
-      font-size: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 60px 20px;
+      color: #444;
+      gap: 8px;
     }
 
-    /* Status bar at bottom — VS Code style */
+    .empty .icon { font-size: 36px; opacity: 0.3; }
+    .empty .text { font-size: 14px; }
+    .empty .sub { font-size: 12px; color: #333; }
+
+    /* Status bar */
     .statusbar {
       position: fixed;
       bottom: 0;
       left: 0;
       right: 0;
-      background: #007acc;
-      padding: 2px 12px;
+      padding: 4px 20px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       font-size: 12px;
       color: #fff;
       z-index: 10;
+      transition: background 0.3s;
     }
 
-    .statusbar.idle { background: #68217a; }
+    .statusbar.has-waiting { background: #b8860b; }
+    .statusbar.all-working { background: #0f3460; }
+    .statusbar.idle { background: #2a2a4a; color: #666; }
 
     .statusbar span { opacity: 0.9; }
+
+    /* Notification permission banner */
+    .notif-banner {
+      background: #2a2a4a;
+      border: 1px solid #333366;
+      padding: 8px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #aaa;
+    }
+
+    .notif-banner button {
+      background: #4da6ff;
+      border: none;
+      color: #fff;
+      padding: 4px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .notif-banner button:hover { background: #3b8fd4; }
+    .notif-banner .close {
+      background: none;
+      color: #666;
+      font-size: 16px;
+      padding: 0 4px;
+    }
   </style>
 </head>
 <body>
-  <div class="titlebar">
-    <svg class="logo" viewBox="62 70 166 170" fill="#cccccc" xmlns="http://www.w3.org/2000/svg">
-      <path d="M100.08,155.62h-25.13c-2.84,0-4.3-3.4-2.35-5.46l70.1-73.81c2.01-2.12,5.58-.69,5.58,2.23v112.33c0,2.9,3.53,4.34,5.55,2.26l34.67-35.59c1.21-1.25,2.88-1.95,4.62-1.95h25.13c2.84,0,4.3,3.4,2.35,5.46l-70.1,73.81c-2.01,2.12-5.58.69-5.58-2.23v-112.33c0-2.9-3.53-4.34-5.55-2.26l-34.67,35.59c-1.21,1.25-2.88,1.95-4.62,1.95Z"/>
-    </svg>
+  <div class="header">
     <span class="title">Claude Queue</span>
     <span class="badge none" id="badge">0</span>
-  </div>
-
-  <div class="sidebar-header">
-    <span>Sessions</span>
     <div class="actions">
-      <button onclick="clearDone()" title="Clear completed">Clear</button>
-      <button onclick="refresh()" title="Refresh">Refresh</button>
+      <button onclick="clearDone()" title="Clear completed sessions">Clear Done</button>
+      <button onclick="refresh()" title="Refresh now">Refresh</button>
     </div>
   </div>
 
-  <div class="jobs" id="jobs"></div>
+  <div id="notif-banner" class="notif-banner" style="display:none">
+    <span>Enable desktop notifications to get alerted when sessions need attention</span>
+    <div>
+      <button onclick="enableNotifications()">Enable</button>
+      <button class="close" onclick="dismissNotifBanner()">&#x2715;</button>
+    </div>
+  </div>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="cards" id="cards"></div>
 
   <div class="statusbar idle" id="statusbar">
     <span id="status-text">No active sessions</span>
@@ -238,18 +360,53 @@
   <script>
     const API = window.location.origin + '/api';
     const statusOrder = { waiting: 0, working: 1, done: 2 };
+    let currentJobs = [];
+    let previousWaiting = new Set();
+    let notifDismissed = false;
+
+    // Check notification permission on load
+    if ('Notification' in window && Notification.permission === 'default' && !notifDismissed) {
+      document.getElementById('notif-banner').style.display = 'flex';
+    }
+
+    function enableNotifications() {
+      Notification.requestPermission().then(p => {
+        document.getElementById('notif-banner').style.display = 'none';
+      });
+    }
+
+    function dismissNotifBanner() {
+      notifDismissed = true;
+      document.getElementById('notif-banner').style.display = 'none';
+    }
 
     function timeAgo(ts) {
-      const mins = Math.floor((Date.now() - new Date(ts).getTime()) / 60000);
-      if (mins < 1) return 'just now';
+      const secs = Math.floor((Date.now() - new Date(ts).getTime()) / 1000);
+      if (secs < 60) return 'just now';
+      const mins = Math.floor(secs / 60);
+      if (mins < 60) return `${mins}m ago`;
+      const hrs = Math.floor(mins / 60);
+      return hrs < 24 ? `${hrs}h ago` : `${Math.floor(hrs / 24)}d ago`;
+    }
+
+    function waitingDuration(ts) {
+      const secs = Math.floor((Date.now() - new Date(ts).getTime()) / 1000);
+      if (secs < 60) return 'just now';
+      const mins = Math.floor(secs / 60);
       if (mins < 60) return `${mins}m`;
       const hrs = Math.floor(mins / 60);
-      return hrs < 24 ? `${hrs}h` : `${Math.floor(hrs / 24)}d`;
+      const remainMins = mins % 60;
+      return remainMins > 0 ? `${hrs}h ${remainMins}m` : `${hrs}h`;
+    }
+
+    function esc(s) {
+      return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     }
 
     function render(queue) {
-      const container = document.getElementById('jobs');
+      const cardsEl = document.getElementById('cards');
       const badge = document.getElementById('badge');
+      const statsEl = document.getElementById('stats');
       const statusbar = document.getElementById('statusbar');
       const statusText = document.getElementById('status-text');
 
@@ -257,77 +414,133 @@
         const d = (statusOrder[a.status] || 9) - (statusOrder[b.status] || 9);
         return d !== 0 ? d : new Date(b.timestamp) - new Date(a.timestamp);
       });
+      currentJobs = jobs;
 
       const waiting = jobs.filter(j => j.status === 'waiting');
       const working = jobs.filter(j => j.status === 'working');
+      const done = jobs.filter(j => j.status === 'done');
+
+      // Desktop notifications for newly waiting sessions
+      if ('Notification' in window && Notification.permission === 'granted') {
+        const currentWaiting = new Set(waiting.map(j => j.repoPath));
+        for (const job of waiting) {
+          if (!previousWaiting.has(job.repoPath)) {
+            new Notification('Claude Queue', {
+              body: `${job.repo} needs attention`,
+              icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><circle cx="16" cy="16" r="14" fill="%23f0a500"/></svg>',
+              tag: job.repoPath,
+              requireInteraction: false
+            });
+          }
+        }
+        previousWaiting = currentWaiting;
+      }
 
       // Badge
       badge.textContent = waiting.length;
       badge.className = waiting.length > 0 ? 'badge' : 'badge none';
       document.title = waiting.length > 0 ? `(${waiting.length}) Claude Queue` : 'Claude Queue';
 
+      // Stats bar
+      const parts = [];
+      if (waiting.length > 0) parts.push(`<div class="stat"><div class="dot waiting"></div>${waiting.length} waiting</div>`);
+      if (working.length > 0) parts.push(`<div class="stat"><div class="dot working"></div>${working.length} working</div>`);
+      if (done.length > 0) parts.push(`<div class="stat">${done.length} done</div>`);
+      if (jobs.length > 0) parts.push(`<div class="stat" style="margin-left:auto">${jobs.length} total</div>`);
+      statsEl.innerHTML = parts.join('');
+
       // Status bar
       if (waiting.length > 0) {
-        statusbar.className = 'statusbar';
+        statusbar.className = 'statusbar has-waiting';
         statusText.textContent = `${waiting.length} session${waiting.length > 1 ? 's' : ''} waiting for input`;
       } else if (working.length > 0) {
-        statusbar.className = 'statusbar';
+        statusbar.className = 'statusbar all-working';
         statusText.textContent = `${working.length} session${working.length > 1 ? 's' : ''} working`;
       } else {
         statusbar.className = 'statusbar idle';
         statusText.textContent = jobs.length > 0 ? `${jobs.length} sessions` : 'No active sessions';
       }
 
+      // Empty state
       if (jobs.length === 0) {
-        container.innerHTML = '<div class="empty">No active Claude Code sessions.<br>Sessions appear here automatically via hooks.</div>';
+        cardsEl.innerHTML = `
+          <div class="empty">
+            <div class="icon">&#9889;</div>
+            <div class="text">No active Claude Code sessions</div>
+            <div class="sub">Sessions appear here automatically when Claude Code hooks fire</div>
+          </div>`;
         return;
       }
 
       let html = '';
 
       if (waiting.length > 0) {
-        html += `<div class="section-label">Waiting (${waiting.length})</div>`;
-        html += waiting.map(jobHtml).join('');
+        html += `<div class="section-label">Needs Attention (${waiting.length})</div>`;
+        html += waiting.map(j => cardHtml(j, 'waiting')).join('');
       }
 
       if (working.length > 0) {
         html += `<div class="section-label">Working (${working.length})</div>`;
-        html += working.map(jobHtml).join('');
+        html += working.map(j => cardHtml(j, 'working')).join('');
       }
 
-      const done = jobs.filter(j => j.status === 'done');
       if (done.length > 0) {
         html += `<div class="section-label">Done (${done.length})</div>`;
-        html += done.map(jobHtml).join('');
+        html += done.map(j => cardHtml(j, 'done')).join('');
       }
 
-      container.innerHTML = html;
+      cardsEl.innerHTML = html;
     }
 
-    function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'); }
+    function cardHtml(job, status) {
+      const idx = currentJobs.indexOf(job);
+      const pathEsc = esc(job.repoPath);
 
-    function jobHtml(job) {
-      const rp = job.repoPath.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+      let timeHtml = '';
+      if (status === 'waiting') {
+        timeHtml = `<span class="time-waiting">${waitingDuration(job.timestamp)}</span>`;
+      } else if (status === 'working') {
+        timeHtml = `<span class="time-working">${timeAgo(job.timestamp)}</span>`;
+      } else {
+        timeHtml = `<span class="time-done">${timeAgo(job.timestamp)}</span>`;
+      }
+
       return `
-        <div class="job ${job.status}" onclick="focusWindow('${rp}')">
-          <div class="indicator ${job.status}"></div>
-          <div class="info">
-            <div class="repo">${esc(job.repo)}</div>
-            <div class="message">${esc(job.message || job.status)}</div>
+        <div class="card ${status}" onclick="focusByIndex(${idx})" title="${pathEsc}">
+          <div class="indicator ${status}"></div>
+          <div class="card-info">
+            <div class="repo-name">${esc(job.repo)}</div>
+            <div class="card-message">${esc(job.message || status)}</div>
           </div>
-          <div class="meta">
-            <span class="time">${timeAgo(job.timestamp)}</span>
-            <button class="dismiss" onclick="event.stopPropagation(); dismiss('${rp}')" title="Dismiss">&#x2715;</button>
+          <div class="card-meta">
+            ${timeHtml}
+            <button class="focus-btn" onclick="event.stopPropagation(); focusByIndex(${idx})">Focus</button>
+            <button class="dismiss-btn" onclick="event.stopPropagation(); dismissByIndex(${idx})" title="Dismiss">&#x2715;</button>
           </div>
         </div>`;
     }
 
+    function focusByIndex(idx) {
+      const job = currentJobs[idx];
+      if (!job) return;
+      focusWindow(job.repoPath);
+    }
+
+    function dismissByIndex(idx) {
+      const job = currentJobs[idx];
+      if (job) dismiss(job.repoPath);
+    }
+
     async function focusWindow(repoPath) {
-      await fetch(API + '/focus', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ repoPath })
-      });
+      try {
+        await fetch(API + '/focus', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ repoPath })
+        });
+      } catch (e) {
+        console.error('Focus error:', e);
+      }
     }
 
     async function dismiss(repoPath) {
@@ -352,7 +565,7 @@
     }
 
     refresh();
-    setInterval(refresh, 3000);
+    setInterval(refresh, 2000);
   </script>
 </body>
 </html>

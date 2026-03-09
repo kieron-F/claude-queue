@@ -3,6 +3,7 @@ const path = require('path');
 const os = require('os');
 
 const QUEUE_FILE = path.join(os.homedir(), '.claude', 'job-queue.json');
+const STALE_HOURS = 24;
 
 function ensureFile() {
   const dir = path.dirname(QUEUE_FILE);
@@ -15,19 +16,41 @@ function ensureFile() {
 function readQueue() {
   ensureFile();
   try {
-    return JSON.parse(fs.readFileSync(QUEUE_FILE, 'utf-8'));
+    const raw = fs.readFileSync(QUEUE_FILE, 'utf-8');
+    const data = JSON.parse(raw);
+    if (!data || !Array.isArray(data.jobs)) return { jobs: [] };
+    return data;
   } catch {
     return { jobs: [] };
   }
 }
 
+/**
+ * Atomic write: write to temp file then rename.
+ * Prevents corruption from concurrent hook writes.
+ */
 function writeQueue(data) {
   ensureFile();
-  fs.writeFileSync(QUEUE_FILE, JSON.stringify(data, null, 2));
+  const tmp = QUEUE_FILE + '.tmp.' + process.pid;
+  try {
+    fs.writeFileSync(tmp, JSON.stringify(data, null, 2));
+    fs.renameSync(tmp, QUEUE_FILE);
+  } catch (e) {
+    // Clean up temp file if rename failed
+    try { fs.unlinkSync(tmp); } catch {}
+    throw e;
+  }
+}
+
+function pruneStale(data) {
+  const cutoff = Date.now() - (STALE_HOURS * 60 * 60 * 1000);
+  data.jobs = data.jobs.filter(j => new Date(j.timestamp).getTime() > cutoff);
 }
 
 function upsertJob({ repoPath, status, message }) {
   const data = readQueue();
+  pruneStale(data);
+
   // Normalize path casing on Windows to avoid duplicates
   repoPath = path.resolve(repoPath);
   const repoName = path.basename(repoPath);
@@ -53,7 +76,9 @@ function upsertJob({ repoPath, status, message }) {
 
 function removeJob(repoPath) {
   const data = readQueue();
-  data.jobs = data.jobs.filter(j => j.repoPath !== repoPath);
+  data.jobs = data.jobs.filter(j =>
+    path.resolve(j.repoPath).toLowerCase() !== path.resolve(repoPath).toLowerCase()
+  );
   writeQueue(data);
 }
 

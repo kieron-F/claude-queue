@@ -32,7 +32,9 @@ function readSettings() {
 
 function hasHook(hookArray) {
   return hookArray.some(entry =>
-    entry.hooks && entry.hooks.some(h => h.command === HOOK_COMMAND)
+    entry.hooks && entry.hooks.some(h =>
+      h.command && h.command.toLowerCase() === HOOK_COMMAND.toLowerCase()
+    )
   );
 }
 
@@ -50,7 +52,7 @@ function addHookEntry(settings, eventName) {
       {
         type: 'command',
         command: HOOK_COMMAND,
-        timeout: 5
+        timeout: 10
       }
     ]
   });
@@ -65,7 +67,9 @@ function removeHookEntry(settings, eventName) {
 
   const before = settings.hooks[eventName].length;
   settings.hooks[eventName] = settings.hooks[eventName].filter(entry =>
-    !(entry.hooks && entry.hooks.some(h => h.command === HOOK_COMMAND))
+    !(entry.hooks && entry.hooks.some(h =>
+      h.command && h.command.toLowerCase() === HOOK_COMMAND.toLowerCase()
+    ))
   );
   const after = settings.hooks[eventName].length;
 
@@ -98,7 +102,7 @@ function run() {
     console.log('\nDone! Claude Code sessions will now report to the job queue.');
     console.log('Queue file: ~/.claude/job-queue.json');
     console.log('\nNext steps:');
-    console.log('  npm install       → install Electron');
+    console.log('  npm install       → install dependencies');
     console.log('  npm start         → launch the tray app');
   } else {
     console.log('\nHooks removed. Claude Code will no longer report to the job queue.');
