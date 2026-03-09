@@ -4,7 +4,10 @@ const path = require('path');
 const fs = require('fs');
 const { exec } = require('child_process');
 const { QUEUE_FILE, readQueue, removeJob, clearDone } = require('./queue');
-const open = require('open');
+
+function openUrl(url) {
+  exec(`start "" "${url}"`, { shell: true });
+}
 
 const PORT = 51477;
 
@@ -246,7 +249,7 @@ async function main() {
   // Auto-open dashboard in browser
   const noOpen = process.argv.includes('--no-open');
   if (!noOpen) {
-    setTimeout(() => open(`http://127.0.0.1:${PORT}`), 500);
+    setTimeout(() => openUrl(`http://127.0.0.1:${PORT}`), 500);
   }
 
   const systray = new SysTray({
@@ -270,7 +273,7 @@ async function main() {
       systray.kill();
       process.exit(0);
     } else if (title === 'Open Dashboard') {
-      open(`http://127.0.0.1:${PORT}`);
+      openUrl(`http://127.0.0.1:${PORT}`);
     }
   });
 

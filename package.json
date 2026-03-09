@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node src/tray.js",
     "start:silent": "node src/tray.js --no-open",
-    "dashboard": "node -e \"require('open')('http://127.0.0.1:51477')\"",
+    "dashboard": "start http://127.0.0.1:51477",
     "setup": "node setup.js",
     "remove": "node setup.js --remove",
     "autostart": "node autostart.js",
@@ -21,7 +21,6 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "open": "^11.0.0",
     "systray2": "^2.1.4"
   }
 }
