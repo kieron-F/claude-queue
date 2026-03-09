@@ -36,7 +36,6 @@ function writeQueue(data) {
     fs.writeFileSync(tmp, JSON.stringify(data, null, 2));
     fs.renameSync(tmp, QUEUE_FILE);
   } catch (e) {
-    // Clean up temp file if rename failed
     try { fs.unlinkSync(tmp); } catch {}
     throw e;
   }
@@ -47,22 +46,41 @@ function pruneStale(data) {
   data.jobs = data.jobs.filter(j => new Date(j.timestamp).getTime() > cutoff);
 }
 
-function upsertJob({ repoPath, status, message }) {
+/**
+ * Upsert a job. Keyed by sessionId (supports multiple sessions per repo).
+ * Falls back to repoPath matching for backward compatibility with old queue entries.
+ */
+function upsertJob({ repoPath, sessionId, status, message }) {
   const data = readQueue();
   pruneStale(data);
 
-  // Normalize path casing on Windows to avoid duplicates
   repoPath = path.resolve(repoPath);
   const repoName = path.basename(repoPath);
-  const existing = data.jobs.find(j => path.resolve(j.repoPath).toLowerCase() === repoPath.toLowerCase());
+
+  // Find by sessionId first, then fall back to repoPath (for old entries without sessionId)
+  let existing = null;
+  if (sessionId) {
+    existing = data.jobs.find(j => j.sessionId === sessionId);
+  }
+  if (!existing) {
+    // Fall back: match by repoPath only if no sessionId match and the entry has no sessionId
+    existing = data.jobs.find(j =>
+      !j.sessionId &&
+      path.resolve(j.repoPath).toLowerCase() === repoPath.toLowerCase()
+    );
+  }
 
   if (existing) {
     existing.status = status;
     existing.message = message || existing.message;
     existing.timestamp = new Date().toISOString();
+    if (sessionId && !existing.sessionId) {
+      existing.sessionId = sessionId;
+    }
   } else {
     data.jobs.push({
-      id: `${repoName}-${Date.now()}`,
+      id: sessionId || `${repoName}-${Date.now()}`,
+      sessionId: sessionId || null,
       repo: repoName,
       repoPath,
       status,
@@ -71,6 +89,12 @@ function upsertJob({ repoPath, status, message }) {
     });
   }
 
+  writeQueue(data);
+}
+
+function removeJobById(jobId) {
+  const data = readQueue();
+  data.jobs = data.jobs.filter(j => j.id !== jobId && j.sessionId !== jobId);
   writeQueue(data);
 }
 
@@ -88,4 +112,4 @@ function clearDone() {
   writeQueue(data);
 }
 
-module.exports = { QUEUE_FILE, readQueue, writeQueue, upsertJob, removeJob, clearDone };
+module.exports = { QUEUE_FILE, readQueue, writeQueue, upsertJob, removeJob, removeJobById, clearDone };

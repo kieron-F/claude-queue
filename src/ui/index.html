@@ -231,21 +231,6 @@
       white-space: nowrap;
     }
 
-    .focus-btn {
-      background: #0f3460;
-      border: 1px solid #1a5276;
-      color: #4da6ff;
-      cursor: pointer;
-      font-size: 11px;
-      font-weight: 600;
-      padding: 4px 10px;
-      border-radius: 6px;
-      transition: all 0.15s;
-      white-space: nowrap;
-    }
-
-    .focus-btn:hover { background: #1a5276; color: #fff; }
-
     .dismiss-btn {
       opacity: 0;
       background: none;
@@ -422,13 +407,14 @@
 
       // Desktop notifications for newly waiting sessions
       if ('Notification' in window && Notification.permission === 'granted') {
-        const currentWaiting = new Set(waiting.map(j => j.repoPath));
+        const jobKey = j => j.sessionId || j.repoPath;
+        const currentWaiting = new Set(waiting.map(jobKey));
         for (const job of waiting) {
-          if (!previousWaiting.has(job.repoPath)) {
+          if (!previousWaiting.has(jobKey(job))) {
             new Notification('Claude Queue', {
               body: `${job.repo} needs attention`,
               icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><circle cx="16" cy="16" r="14" fill="%23f0a500"/></svg>',
-              tag: job.repoPath,
+              tag: jobKey(job),
               requireInteraction: false
             });
           }
@@ -514,7 +500,6 @@
           </div>
           <div class="card-meta">
             ${timeHtml}
-            <button class="focus-btn" onclick="event.stopPropagation(); focusByIndex(${idx})">Focus</button>
             <button class="dismiss-btn" onclick="event.stopPropagation(); dismissByIndex(${idx})" title="Dismiss">&#x2715;</button>
           </div>
         </div>`;
@@ -528,7 +513,7 @@
 
     function dismissByIndex(idx) {
       const job = currentJobs[idx];
-      if (job) dismiss(job.repoPath);
+      if (job) dismissJob(job);
     }
 
     async function focusWindow(repoPath) {
@@ -543,11 +528,14 @@
       }
     }
 
-    async function dismiss(repoPath) {
+    async function dismissJob(job) {
+      const body = job.sessionId
+        ? { jobId: job.sessionId }
+        : { repoPath: job.repoPath };
       await fetch(API + '/dismiss', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ repoPath })
+        body: JSON.stringify(body)
       });
       refresh();
     }

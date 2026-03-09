@@ -3,7 +3,7 @@ const http = require('http');
 const path = require('path');
 const fs = require('fs');
 const { exec } = require('child_process');
-const { QUEUE_FILE, readQueue, removeJob, clearDone } = require('./queue');
+const { QUEUE_FILE, readQueue, removeJob, removeJobById, clearDone } = require('./queue');
 
 function openUrl(url) {
   exec(`start "" "${url}"`, { shell: true });
@@ -120,8 +120,12 @@ function startServer() {
       req.on('data', c => body += c);
       req.on('end', () => {
         try {
-          const { repoPath } = JSON.parse(body);
-          removeJob(repoPath);
+          const parsed = JSON.parse(body);
+          if (parsed.jobId) {
+            removeJobById(parsed.jobId);
+          } else if (parsed.repoPath) {
+            removeJob(parsed.repoPath);
+          }
           res.writeHead(200, cors); res.end('ok');
         } catch {
           res.writeHead(400, cors); res.end('bad request');

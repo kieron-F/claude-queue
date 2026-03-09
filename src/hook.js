@@ -39,26 +39,26 @@ async function main() {
   }
 
   const repoPath = event.cwd || process.cwd();
+  const sessionId = event.session_id || null;
   const hookEvent = event.hook_event_name || 'unknown';
 
-  log('INFO', `Hook fired: ${hookEvent} for ${repoPath}`);
+  log('INFO', `Hook fired: ${hookEvent} for ${repoPath} (session: ${sessionId || 'unknown'})`);
 
   const { upsertJob } = require('./queue');
 
   if (hookEvent === 'Stop') {
-    // Claude finished responding — waiting for user input
     const msg = event.last_assistant_message;
     let summary = 'Waiting for input';
     if (msg && typeof msg === 'string') {
-      summary = msg.slice(0, 60).replace(/\n/g, ' ').trim();
-      if (msg.length > 60) summary += '...';
+      summary = msg.slice(0, 80).replace(/\n/g, ' ').trim();
+      if (msg.length > 80) summary += '...';
     }
-    upsertJob({ repoPath, status: 'waiting', message: summary });
+    upsertJob({ repoPath, sessionId, status: 'waiting', message: summary });
   } else if (hookEvent === 'Notification') {
     const message = event.message || event.title || 'Notification';
-    upsertJob({ repoPath, status: 'waiting', message });
+    upsertJob({ repoPath, sessionId, status: 'waiting', message });
   } else if (hookEvent === 'UserPromptSubmit') {
-    upsertJob({ repoPath, status: 'working', message: 'Claude is working...' });
+    upsertJob({ repoPath, sessionId, status: 'working', message: 'Claude is working...' });
   }
 
   log('INFO', `Hook complete: ${hookEvent} for ${path.basename(repoPath)}`);
