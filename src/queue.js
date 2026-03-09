@@ -28,8 +28,10 @@ function writeQueue(data) {
 
 function upsertJob({ repoPath, status, message }) {
   const data = readQueue();
+  // Normalize path casing on Windows to avoid duplicates
+  repoPath = path.resolve(repoPath);
   const repoName = path.basename(repoPath);
-  const existing = data.jobs.find(j => j.repoPath === repoPath);
+  const existing = data.jobs.find(j => path.resolve(j.repoPath).toLowerCase() === repoPath.toLowerCase());
 
   if (existing) {
     existing.status = status;

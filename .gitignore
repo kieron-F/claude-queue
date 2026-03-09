@@ -1,4 +1,5 @@
 node_modules/
-*.vsix
-src/icon.png
-dist/
+electron-err.log
+test-*.js
+test-*.ps1
+generate-icon.js

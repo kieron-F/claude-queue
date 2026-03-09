@@ -4,13 +4,20 @@
   "description": "Cross-window job queue for Claude Code — see which sessions need attention, click to jump there",
   "main": "src/tray.js",
   "scripts": {
-    "start": "electron src/tray.js",
+    "start": "node src/tray.js",
     "setup": "node setup.js",
     "remove": "node setup.js --remove"
   },
-  "keywords": ["claude", "claude-code", "queue", "productivity", "tray"],
+  "keywords": [
+    "claude",
+    "claude-code",
+    "queue",
+    "productivity",
+    "tray"
+  ],
   "license": "MIT",
   "dependencies": {
-    "electron": "^33.0.0"
+    "open": "^11.0.0",
+    "systray2": "^2.1.4"
   }
 }

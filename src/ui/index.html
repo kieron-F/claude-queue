@@ -2,241 +2,357 @@
 <html>
 <head>
   <meta charset="UTF-8">
+  <title>Claude Queue</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
-      font-family: -apple-system, 'Segoe UI', sans-serif;
-      background: transparent;
-      overflow: hidden;
+      font-family: 'Segoe UI', -apple-system, sans-serif;
+      font-size: 13px;
+      background: #1e1e1e;
+      color: #cccccc;
+      min-height: 100vh;
+    }
+
+    /* VS Code-style title bar */
+    .titlebar {
+      background: #323233;
+      padding: 6px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid #2b2b2b;
       user-select: none;
     }
 
-    .container {
-      background: #1e1e2e;
-      border: 1px solid #313244;
-      border-radius: 12px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-      overflow: hidden;
-      max-height: 480px;
-      display: flex;
-      flex-direction: column;
+    .titlebar .logo {
+      width: 16px;
+      height: 16px;
+      opacity: 0.8;
     }
 
-    .header {
-      padding: 14px 16px;
-      background: #181825;
-      border-bottom: 1px solid #313244;
+    .titlebar .title {
+      font-size: 12px;
+      color: #969696;
+      flex: 1;
+    }
+
+    .titlebar .badge {
+      background: #0078d4;
+      color: #fff;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 1px 6px;
+      border-radius: 10px;
+      min-width: 18px;
+      text-align: center;
+    }
+
+    .titlebar .badge.none { background: #3c3c3c; color: #666; }
+
+    /* VS Code sidebar style */
+    .sidebar-header {
+      padding: 8px 16px 6px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #bbbbbb;
+      background: #252526;
+      border-bottom: 1px solid #2b2b2b;
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
 
-    .header h1 {
-      font-size: 13px;
-      font-weight: 600;
-      color: #cdd6f4;
-      letter-spacing: 0.5px;
+    .sidebar-header .actions {
+      display: flex;
+      gap: 4px;
     }
 
-    .header .count {
-      font-size: 11px;
-      color: #a6adc8;
+    .sidebar-header button {
+      background: none;
+      border: none;
+      color: #888;
+      cursor: pointer;
+      font-size: 12px;
+      padding: 2px 6px;
+      border-radius: 3px;
     }
 
+    .sidebar-header button:hover { background: #383838; color: #ccc; }
+
+    /* Job list — VS Code tree view style */
     .jobs {
-      overflow-y: auto;
-      flex: 1;
-      padding: 6px;
+      background: #252526;
+      min-height: calc(100vh - 65px);
     }
 
-    .jobs::-webkit-scrollbar { width: 4px; }
-    .jobs::-webkit-scrollbar-track { background: transparent; }
-    .jobs::-webkit-scrollbar-thumb { background: #45475a; border-radius: 2px; }
+    .section-label {
+      padding: 4px 16px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      background: #252526;
+      border-top: 1px solid #2b2b2b;
+      margin-top: 2px;
+    }
+
+    .section-label:first-child { border-top: none; margin-top: 0; }
 
     .job {
-      padding: 10px 12px;
-      border-radius: 8px;
+      padding: 4px 16px 4px 24px;
       cursor: pointer;
-      transition: background 0.15s;
       display: flex;
       align-items: center;
-      gap: 10px;
-      margin-bottom: 2px;
+      gap: 8px;
+      transition: background 0.1s;
+      border-left: 2px solid transparent;
     }
 
-    .job:hover { background: #313244; }
+    .job:hover {
+      background: #2a2d2e;
+    }
 
-    .job .indicator {
-      width: 8px;
-      height: 8px;
+    .job:active {
+      background: #37373d;
+    }
+
+    .job.waiting { border-left-color: #cca700; }
+    .job.working { border-left-color: #3794ff; }
+
+    .indicator {
+      width: 6px;
+      height: 6px;
       border-radius: 50%;
       flex-shrink: 0;
     }
 
-    .job .indicator.waiting { background: #f9e2af; box-shadow: 0 0 6px #f9e2af55; }
-    .job .indicator.working { background: #89b4fa; animation: pulse 2s infinite; }
-    .job .indicator.done { background: #a6e3a1; }
+    .indicator.waiting { background: #cca700; }
+    .indicator.working { background: #3794ff; animation: pulse 2s infinite; }
+    .indicator.done { background: #89d185; }
 
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.4; }
-    }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
 
-    .job .info { flex: 1; min-width: 0; }
+    .info { flex: 1; min-width: 0; }
 
-    .job .repo {
-      font-size: 12px;
-      font-weight: 600;
-      color: #cdd6f4;
+    .repo {
+      font-size: 13px;
+      color: #e8e8e8;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      line-height: 22px;
     }
 
-    .job .message {
+    .message {
       font-size: 11px;
-      color: #a6adc8;
+      color: #808080;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      margin-top: 2px;
+      line-height: 16px;
     }
 
-    .job .time {
-      font-size: 10px;
-      color: #585b70;
+    .meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
       flex-shrink: 0;
     }
 
-    .job .dismiss {
+    .time {
+      font-size: 11px;
+      color: #555;
+    }
+
+    .dismiss {
       opacity: 0;
       background: none;
       border: none;
-      color: #585b70;
+      color: #555;
       cursor: pointer;
       font-size: 14px;
-      padding: 2px 4px;
-      border-radius: 4px;
-      flex-shrink: 0;
-      transition: opacity 0.15s, color 0.15s;
+      padding: 0 4px;
+      border-radius: 3px;
+      line-height: 1;
     }
 
     .job:hover .dismiss { opacity: 1; }
-    .job .dismiss:hover { color: #f38ba8; }
+    .dismiss:hover { color: #f48771; background: #383838; }
 
     .empty {
       padding: 40px 20px;
       text-align: center;
-      color: #585b70;
+      color: #555;
       font-size: 12px;
     }
 
-    .empty .icon {
-      font-size: 28px;
-      margin-bottom: 8px;
-      opacity: 0.5;
-    }
-
-    .footer {
-      padding: 8px 12px;
-      border-top: 1px solid #313244;
+    /* Status bar at bottom — VS Code style */
+    .statusbar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #007acc;
+      padding: 2px 12px;
       display: flex;
-      justify-content: flex-end;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: #fff;
+      z-index: 10;
     }
 
-    .footer button {
-      background: none;
-      border: none;
-      color: #585b70;
-      font-size: 11px;
-      cursor: pointer;
-      padding: 4px 8px;
-      border-radius: 4px;
-    }
+    .statusbar.idle { background: #68217a; }
 
-    .footer button:hover { color: #cdd6f4; background: #313244; }
+    .statusbar span { opacity: 0.9; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <h1>CLAUDE QUEUE</h1>
-      <span class="count" id="count"></span>
-    </div>
-    <div class="jobs" id="jobs"></div>
-    <div class="footer">
-      <button onclick="clearDone()">Clear done</button>
+  <div class="titlebar">
+    <svg class="logo" viewBox="62 70 166 170" fill="#cccccc" xmlns="http://www.w3.org/2000/svg">
+      <path d="M100.08,155.62h-25.13c-2.84,0-4.3-3.4-2.35-5.46l70.1-73.81c2.01-2.12,5.58-.69,5.58,2.23v112.33c0,2.9,3.53,4.34,5.55,2.26l34.67-35.59c1.21-1.25,2.88-1.95,4.62-1.95h25.13c2.84,0,4.3,3.4,2.35,5.46l-70.1,73.81c-2.01,2.12-5.58.69-5.58-2.23v-112.33c0-2.9-3.53-4.34-5.55-2.26l-34.67,35.59c-1.21,1.25-2.88,1.95-4.62,1.95Z"/>
+    </svg>
+    <span class="title">Claude Queue</span>
+    <span class="badge none" id="badge">0</span>
+  </div>
+
+  <div class="sidebar-header">
+    <span>Sessions</span>
+    <div class="actions">
+      <button onclick="clearDone()" title="Clear completed">Clear</button>
+      <button onclick="refresh()" title="Refresh">Refresh</button>
     </div>
   </div>
 
-  <script>
-    const { ipcRenderer } = require('electron');
+  <div class="jobs" id="jobs"></div>
 
+  <div class="statusbar idle" id="statusbar">
+    <span id="status-text">No active sessions</span>
+    <span id="status-time"></span>
+  </div>
+
+  <script>
+    const API = window.location.origin + '/api';
     const statusOrder = { waiting: 0, working: 1, done: 2 };
 
-    function timeAgo(timestamp) {
-      const diff = Date.now() - new Date(timestamp).getTime();
-      const mins = Math.floor(diff / 60000);
-      if (mins < 1) return 'now';
+    function timeAgo(ts) {
+      const mins = Math.floor((Date.now() - new Date(ts).getTime()) / 60000);
+      if (mins < 1) return 'just now';
       if (mins < 60) return `${mins}m`;
       const hrs = Math.floor(mins / 60);
-      if (hrs < 24) return `${hrs}h`;
-      return `${Math.floor(hrs / 24)}d`;
+      return hrs < 24 ? `${hrs}h` : `${Math.floor(hrs / 24)}d`;
     }
 
-    function renderJobs(queue) {
+    function render(queue) {
       const container = document.getElementById('jobs');
-      const countEl = document.getElementById('count');
+      const badge = document.getElementById('badge');
+      const statusbar = document.getElementById('statusbar');
+      const statusText = document.getElementById('status-text');
 
       const jobs = (queue.jobs || []).sort((a, b) => {
-        const statusDiff = (statusOrder[a.status] || 9) - (statusOrder[b.status] || 9);
-        if (statusDiff !== 0) return statusDiff;
-        return new Date(b.timestamp) - new Date(a.timestamp);
+        const d = (statusOrder[a.status] || 9) - (statusOrder[b.status] || 9);
+        return d !== 0 ? d : new Date(b.timestamp) - new Date(a.timestamp);
       });
 
-      const waiting = jobs.filter(j => j.status === 'waiting').length;
-      countEl.textContent = waiting > 0 ? `${waiting} waiting` : `${jobs.length} jobs`;
+      const waiting = jobs.filter(j => j.status === 'waiting');
+      const working = jobs.filter(j => j.status === 'working');
+
+      // Badge
+      badge.textContent = waiting.length;
+      badge.className = waiting.length > 0 ? 'badge' : 'badge none';
+      document.title = waiting.length > 0 ? `(${waiting.length}) Claude Queue` : 'Claude Queue';
+
+      // Status bar
+      if (waiting.length > 0) {
+        statusbar.className = 'statusbar';
+        statusText.textContent = `${waiting.length} session${waiting.length > 1 ? 's' : ''} waiting for input`;
+      } else if (working.length > 0) {
+        statusbar.className = 'statusbar';
+        statusText.textContent = `${working.length} session${working.length > 1 ? 's' : ''} working`;
+      } else {
+        statusbar.className = 'statusbar idle';
+        statusText.textContent = jobs.length > 0 ? `${jobs.length} sessions` : 'No active sessions';
+      }
 
       if (jobs.length === 0) {
-        container.innerHTML = '<div class="empty"><div class="icon">~</div>No active sessions</div>';
+        container.innerHTML = '<div class="empty">No active Claude Code sessions.<br>Sessions appear here automatically via hooks.</div>';
         return;
       }
 
-      container.innerHTML = jobs.map(job => `
-        <div class="job" onclick="focusWindow('${job.repoPath.replace(/\\/g, '\\\\')}')">
+      let html = '';
+
+      if (waiting.length > 0) {
+        html += `<div class="section-label">Waiting (${waiting.length})</div>`;
+        html += waiting.map(jobHtml).join('');
+      }
+
+      if (working.length > 0) {
+        html += `<div class="section-label">Working (${working.length})</div>`;
+        html += working.map(jobHtml).join('');
+      }
+
+      const done = jobs.filter(j => j.status === 'done');
+      if (done.length > 0) {
+        html += `<div class="section-label">Done (${done.length})</div>`;
+        html += done.map(jobHtml).join('');
+      }
+
+      container.innerHTML = html;
+    }
+
+    function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'); }
+
+    function jobHtml(job) {
+      const rp = job.repoPath.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+      return `
+        <div class="job ${job.status}" onclick="focusWindow('${rp}')">
           <div class="indicator ${job.status}"></div>
           <div class="info">
-            <div class="repo">${job.repo}</div>
-            <div class="message">${job.message || job.status}</div>
+            <div class="repo">${esc(job.repo)}</div>
+            <div class="message">${esc(job.message || job.status)}</div>
           </div>
-          <div class="time">${timeAgo(job.timestamp)}</div>
-          <button class="dismiss" onclick="event.stopPropagation(); dismissJob('${job.repoPath.replace(/\\/g, '\\\\')}')">x</button>
-        </div>
-      `).join('');
+          <div class="meta">
+            <span class="time">${timeAgo(job.timestamp)}</span>
+            <button class="dismiss" onclick="event.stopPropagation(); dismiss('${rp}')" title="Dismiss">&#x2715;</button>
+          </div>
+        </div>`;
     }
 
-    function focusWindow(repoPath) {
-      ipcRenderer.send('focus-window', repoPath);
+    async function focusWindow(repoPath) {
+      await fetch(API + '/focus', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ repoPath })
+      });
     }
 
-    function dismissJob(repoPath) {
-      ipcRenderer.send('remove-job', repoPath);
+    async function dismiss(repoPath) {
+      await fetch(API + '/dismiss', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ repoPath })
+      });
+      refresh();
     }
 
-    function clearDone() {
-      ipcRenderer.send('clear-done');
+    async function clearDone() {
+      await fetch(API + '/clear-done', { method: 'POST' });
+      refresh();
     }
 
-    ipcRenderer.on('queue-update', (_, queue) => {
-      renderJobs(queue);
-    });
+    async function refresh() {
+      try {
+        const res = await fetch(API + '/queue');
+        render(await res.json());
+      } catch {}
+    }
 
-    // Request initial data
-    ipcRenderer.send('refresh');
-
-    // Auto-refresh every 5 seconds while visible
-    setInterval(() => ipcRenderer.send('refresh'), 5000);
+    refresh();
+    setInterval(refresh, 3000);
   </script>
 </body>
 </html>
