@@ -1,0 +1,30 @@
+{
+  "name": "claude-queue-sidebar",
+  "displayName": "Claude Queue",
+  "description": "Sidebar panel showing Claude Code job queue across all VS Code windows",
+  "version": "1.0.0",
+  "engines": { "vscode": "^1.85.0" },
+  "categories": ["Other"],
+  "activationEvents": ["onStartupFinished"],
+  "main": "./extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "claude-queue",
+          "title": "Claude Queue",
+          "icon": "$(pulse)"
+        }
+      ]
+    },
+    "views": {
+      "claude-queue": [
+        {
+          "type": "webview",
+          "id": "claudeQueue.panel",
+          "name": "Job Queue"
+        }
+      ]
+    }
+  }
+}

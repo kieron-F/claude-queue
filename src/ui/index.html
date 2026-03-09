@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, 'Segoe UI', sans-serif;
+      background: transparent;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    .container {
+      background: #1e1e2e;
+      border: 1px solid #313244;
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      overflow: hidden;
+      max-height: 480px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header {
+      padding: 14px 16px;
+      background: #181825;
+      border-bottom: 1px solid #313244;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .header h1 {
+      font-size: 13px;
+      font-weight: 600;
+      color: #cdd6f4;
+      letter-spacing: 0.5px;
+    }
+
+    .header .count {
+      font-size: 11px;
+      color: #a6adc8;
+    }
+
+    .jobs {
+      overflow-y: auto;
+      flex: 1;
+      padding: 6px;
+    }
+
+    .jobs::-webkit-scrollbar { width: 4px; }
+    .jobs::-webkit-scrollbar-track { background: transparent; }
+    .jobs::-webkit-scrollbar-thumb { background: #45475a; border-radius: 2px; }
+
+    .job {
+      padding: 10px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 2px;
+    }
+
+    .job:hover { background: #313244; }
+
+    .job .indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .job .indicator.waiting { background: #f9e2af; box-shadow: 0 0 6px #f9e2af55; }
+    .job .indicator.working { background: #89b4fa; animation: pulse 2s infinite; }
+    .job .indicator.done { background: #a6e3a1; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    .job .info { flex: 1; min-width: 0; }
+
+    .job .repo {
+      font-size: 12px;
+      font-weight: 600;
+      color: #cdd6f4;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .job .message {
+      font-size: 11px;
+      color: #a6adc8;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 2px;
+    }
+
+    .job .time {
+      font-size: 10px;
+      color: #585b70;
+      flex-shrink: 0;
+    }
+
+    .job .dismiss {
+      opacity: 0;
+      background: none;
+      border: none;
+      color: #585b70;
+      cursor: pointer;
+      font-size: 14px;
+      padding: 2px 4px;
+      border-radius: 4px;
+      flex-shrink: 0;
+      transition: opacity 0.15s, color 0.15s;
+    }
+
+    .job:hover .dismiss { opacity: 1; }
+    .job .dismiss:hover { color: #f38ba8; }
+
+    .empty {
+      padding: 40px 20px;
+      text-align: center;
+      color: #585b70;
+      font-size: 12px;
+    }
+
+    .empty .icon {
+      font-size: 28px;
+      margin-bottom: 8px;
+      opacity: 0.5;
+    }
+
+    .footer {
+      padding: 8px 12px;
+      border-top: 1px solid #313244;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .footer button {
+      background: none;
+      border: none;
+      color: #585b70;
+      font-size: 11px;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+
+    .footer button:hover { color: #cdd6f4; background: #313244; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>CLAUDE QUEUE</h1>
+      <span class="count" id="count"></span>
+    </div>
+    <div class="jobs" id="jobs"></div>
+    <div class="footer">
+      <button onclick="clearDone()">Clear done</button>
+    </div>
+  </div>
+
+  <script>
+    const { ipcRenderer } = require('electron');
+
+    const statusOrder = { waiting: 0, working: 1, done: 2 };
+
+    function timeAgo(timestamp) {
+      const diff = Date.now() - new Date(timestamp).getTime();
+      const mins = Math.floor(diff / 60000);
+      if (mins < 1) return 'now';
+      if (mins < 60) return `${mins}m`;
+      const hrs = Math.floor(mins / 60);
+      if (hrs < 24) return `${hrs}h`;
+      return `${Math.floor(hrs / 24)}d`;
+    }
+
+    function renderJobs(queue) {
+      const container = document.getElementById('jobs');
+      const countEl = document.getElementById('count');
+
+      const jobs = (queue.jobs || []).sort((a, b) => {
+        const statusDiff = (statusOrder[a.status] || 9) - (statusOrder[b.status] || 9);
+        if (statusDiff !== 0) return statusDiff;
+        return new Date(b.timestamp) - new Date(a.timestamp);
+      });
+
+      const waiting = jobs.filter(j => j.status === 'waiting').length;
+      countEl.textContent = waiting > 0 ? `${waiting} waiting` : `${jobs.length} jobs`;
+
+      if (jobs.length === 0) {
+        container.innerHTML = '<div class="empty"><div class="icon">~</div>No active sessions</div>';
+        return;
+      }
+
+      container.innerHTML = jobs.map(job => `
+        <div class="job" onclick="focusWindow('${job.repoPath.replace(/\\/g, '\\\\')}')">
+          <div class="indicator ${job.status}"></div>
+          <div class="info">
+            <div class="repo">${job.repo}</div>
+            <div class="message">${job.message || job.status}</div>
+          </div>
+          <div class="time">${timeAgo(job.timestamp)}</div>
+          <button class="dismiss" onclick="event.stopPropagation(); dismissJob('${job.repoPath.replace(/\\/g, '\\\\')}')">x</button>
+        </div>
+      `).join('');
+    }
+
+    function focusWindow(repoPath) {
+      ipcRenderer.send('focus-window', repoPath);
+    }
+
+    function dismissJob(repoPath) {
+      ipcRenderer.send('remove-job', repoPath);
+    }
+
+    function clearDone() {
+      ipcRenderer.send('clear-done');
+    }
+
+    ipcRenderer.on('queue-update', (_, queue) => {
+      renderJobs(queue);
+    });
+
+    // Request initial data
+    ipcRenderer.send('refresh');
+
+    // Auto-refresh every 5 seconds while visible
+    setInterval(() => ipcRenderer.send('refresh'), 5000);
+  </script>
+</body>
+</html>
