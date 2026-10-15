@@ -88,11 +88,15 @@ function run() {
     removeHookEntry(settings, 'Stop');
     removeHookEntry(settings, 'Notification');
     removeHookEntry(settings, 'UserPromptSubmit');
+    removeHookEntry(settings, 'SessionEnd');
+    removeHookEntry(settings, 'TaskCompleted');
   } else {
     console.log('Installing Claude Queue hooks...\n');
     addHookEntry(settings, 'Stop');
     addHookEntry(settings, 'Notification');
     addHookEntry(settings, 'UserPromptSubmit');
+    addHookEntry(settings, 'SessionEnd');
+    addHookEntry(settings, 'TaskCompleted');
   }
 
   fs.writeFileSync(SETTINGS_FILE, JSON.stringify(settings, null, 2));

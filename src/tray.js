@@ -3,7 +3,7 @@ const http = require('http');
 const path = require('path');
 const fs = require('fs');
 const { exec } = require('child_process');
-const { QUEUE_FILE, readQueue, removeJob, removeJobById, clearDone } = require('./queue');
+const { QUEUE_FILE, readQueue, removeJob, removeJobById, clearDone, readHistory, getStats } = require('./queue');
 
 function openUrl(url) {
   exec(`start "" "${url}"`, { shell: true });
@@ -99,8 +99,9 @@ function startServer() {
       res.writeHead(200, { 'Content-Type': 'text/html' });
       res.end(fs.readFileSync(path.join(__dirname, 'ui', 'index.html'), 'utf-8'));
     } else if (req.url === '/api/queue') {
+      const data = readQueue({ applyAutoDone: true });
       res.writeHead(200, { 'Content-Type': 'application/json', ...cors });
-      res.end(JSON.stringify(readQueue()));
+      res.end(JSON.stringify(data));
     } else if (req.url === '/api/focus' && req.method === 'POST') {
       let body = '';
       req.on('data', c => body += c);
@@ -134,6 +135,16 @@ function startServer() {
     } else if (req.url === '/api/clear-done' && req.method === 'POST') {
       clearDone();
       res.writeHead(200, cors); res.end('ok');
+    } else if (req.url === '/api/stats') {
+      res.writeHead(200, { 'Content-Type': 'application/json', ...cors });
+      res.end(JSON.stringify(getStats()));
+    } else if (req.url && req.url.startsWith('/api/history')) {
+      const history = readHistory();
+      // Return most recent first, limit to 50
+      history.history.sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt));
+      history.history = history.history.slice(0, 50);
+      res.writeHead(200, { 'Content-Type': 'application/json', ...cors });
+      res.end(JSON.stringify(history));
     } else {
       res.writeHead(404); res.end('not found');
     }

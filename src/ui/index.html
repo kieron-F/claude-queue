@@ -2,26 +2,26 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Claude Queue</title>
+  <title>Command Centre</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
       font-family: 'Segoe UI', -apple-system, sans-serif;
       font-size: 14px;
-      background: #1a1a2e;
+      background: #0d1117;
       color: #e0e0e0;
       min-height: 100vh;
     }
 
     /* Header */
     .header {
-      background: #16213e;
+      background: #161b22;
       padding: 12px 20px;
       display: flex;
       align-items: center;
       gap: 12px;
-      border-bottom: 1px solid #0f3460;
+      border-bottom: 1px solid #30363d;
       user-select: none;
     }
 
@@ -29,7 +29,6 @@
       font-size: 15px;
       font-weight: 600;
       color: #e0e0e0;
-      flex: 1;
     }
 
     .header .badge {
@@ -43,7 +42,28 @@
       text-align: center;
     }
 
-    .header .badge.none { background: #2a2a4a; color: #555; }
+    .header .badge.none { background: #21262d; color: #484f58; }
+
+    .header .stats-chips {
+      display: flex;
+      gap: 8px;
+      flex: 1;
+      margin-left: 8px;
+    }
+
+    .stats-chip {
+      font-size: 11px;
+      color: #8b949e;
+      background: #21262d;
+      padding: 3px 10px;
+      border-radius: 12px;
+      white-space: nowrap;
+    }
+
+    .stats-chip strong {
+      color: #58a6ff;
+      font-weight: 700;
+    }
 
     .header .actions {
       display: flex;
@@ -51,9 +71,9 @@
     }
 
     .header button {
-      background: #2a2a4a;
-      border: 1px solid #333366;
-      color: #aaa;
+      background: #21262d;
+      border: 1px solid #30363d;
+      color: #8b949e;
       cursor: pointer;
       font-size: 12px;
       padding: 4px 12px;
@@ -61,42 +81,48 @@
       transition: all 0.15s;
     }
 
-    .header button:hover { background: #333366; color: #e0e0e0; }
+    .header button:hover { background: #30363d; color: #e0e0e0; }
 
-    /* Summary stats */
-    .stats {
+    /* Main layout */
+    .main {
       display: flex;
-      gap: 12px;
-      padding: 12px 20px;
-      background: #16213e;
-      border-bottom: 1px solid #0f3460;
+      gap: 0;
+      min-height: calc(100vh - 90px);
     }
 
-    .stat {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 12px;
-      color: #888;
+    /* Active sessions panel */
+    .panel-active {
+      flex: 1;
+      padding: 16px 20px;
+      min-width: 0;
+      border-right: 1px solid #30363d;
     }
 
-    .stat .dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-    }
-
-    .stat .dot.waiting { background: #f0a500; }
-    .stat .dot.working { background: #4da6ff; }
-
-    /* Cards container */
-    .cards {
+    /* History panel */
+    .panel-history {
+      width: 380px;
+      flex-shrink: 0;
       padding: 16px 20px;
       display: flex;
       flex-direction: column;
-      gap: 8px;
-      min-height: calc(100vh - 140px);
-      padding-bottom: 50px;
+      gap: 12px;
+    }
+
+    @media (max-width: 900px) {
+      .main { flex-direction: column; }
+      .panel-active { border-right: none; border-bottom: 1px solid #30363d; }
+      .panel-history { width: 100%; }
+    }
+
+    .panel-title {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #8b949e;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #21262d;
+      margin-bottom: 8px;
     }
 
     .section-label {
@@ -104,58 +130,53 @@
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 1px;
-      color: #666;
-      padding: 8px 0 4px;
+      color: #484f58;
+      padding: 12px 0 6px;
     }
 
     .section-label:first-child { padding-top: 0; }
 
     /* Job card */
     .card {
-      background: #16213e;
-      border: 1px solid #0f3460;
+      background: #161b22;
+      border: 1px solid #30363d;
       border-radius: 10px;
       padding: 14px 16px;
       cursor: pointer;
       display: flex;
-      align-items: center;
-      gap: 14px;
+      align-items: flex-start;
+      gap: 12px;
       transition: all 0.15s;
       position: relative;
       overflow: hidden;
+      margin-bottom: 8px;
     }
 
     .card:hover {
-      background: #1a2744;
-      border-color: #1a5276;
+      background: #1c2333;
+      border-color: #388bfd44;
       transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
     }
 
-    .card:active {
-      transform: translateY(0);
-    }
+    .card:active { transform: translateY(0); }
 
-    /* Left accent stripe */
     .card::before {
       content: '';
       position: absolute;
-      left: 0;
-      top: 0;
-      bottom: 0;
+      left: 0; top: 0; bottom: 0;
       width: 4px;
     }
 
     .card.waiting::before { background: #f0a500; }
-    .card.working::before { background: #4da6ff; }
-    .card.done::before { background: #4caf50; }
+    .card.working::before { background: #58a6ff; }
+    .card.done::before { background: #3fb950; }
 
-    /* Status indicator */
     .indicator {
-      width: 10px;
-      height: 10px;
+      width: 10px; height: 10px;
       border-radius: 50%;
       flex-shrink: 0;
+      margin-top: 4px;
     }
 
     .indicator.waiting {
@@ -165,50 +186,54 @@
     }
 
     .indicator.working {
-      background: #4da6ff;
+      background: #58a6ff;
       animation: pulse 1.5s infinite;
     }
 
-    .indicator.done { background: #4caf50; }
+    .indicator.done { background: #3fb950; }
 
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.3; }
-    }
+    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
+    @keyframes glow-amber { 0%,100% { box-shadow: 0 0 6px rgba(240,165,0,0.4); } 50% { box-shadow: 0 0 14px rgba(240,165,0,0.7); } }
 
-    @keyframes glow-amber {
-      0%, 100% { box-shadow: 0 0 6px rgba(240,165,0,0.4); }
-      50% { box-shadow: 0 0 14px rgba(240,165,0,0.7); }
-    }
-
-    /* Card content */
     .card-info { flex: 1; min-width: 0; }
 
     .repo-name {
       font-size: 14px;
       font-weight: 600;
-      color: #fff;
+      color: #e6edf3;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
       line-height: 1.4;
+    }
+
+    .card-task {
+      font-size: 12px;
+      color: #b1bac4;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      line-height: 1.4;
+      margin-top: 3px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
     }
 
     .card-message {
-      font-size: 12px;
-      color: #8899aa;
+      font-size: 11px;
+      color: #484f58;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
       line-height: 1.4;
-      margin-top: 2px;
+      margin-top: 3px;
     }
 
-    /* Right side meta */
     .card-meta {
       display: flex;
-      align-items: center;
-      gap: 10px;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
       flex-shrink: 0;
     }
 
@@ -221,13 +246,13 @@
 
     .time-working {
       font-size: 12px;
-      color: #4da6ff;
+      color: #58a6ff;
       white-space: nowrap;
     }
 
     .time-done {
       font-size: 12px;
-      color: #555;
+      color: #484f58;
       white-space: nowrap;
     }
 
@@ -235,7 +260,7 @@
       opacity: 0;
       background: none;
       border: none;
-      color: #555;
+      color: #484f58;
       cursor: pointer;
       font-size: 16px;
       padding: 2px 6px;
@@ -247,6 +272,95 @@
     .card:hover .dismiss-btn { opacity: 0.7; }
     .dismiss-btn:hover { opacity: 1 !important; color: #e94560; background: rgba(233,69,96,0.1); }
 
+    /* Stats boxes */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .stat-box {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+    }
+
+    .stat-box .number {
+      font-size: 24px;
+      font-weight: 700;
+      color: #58a6ff;
+      line-height: 1;
+    }
+
+    .stat-box .label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #484f58;
+      margin-top: 4px;
+    }
+
+    /* History list */
+    .history-list {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .history-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.1s;
+      font-size: 12px;
+    }
+
+    .history-item:hover { background: #161b22; }
+
+    .history-icon {
+      flex-shrink: 0;
+      font-size: 14px;
+      width: 20px;
+      text-align: center;
+    }
+
+    .history-icon.completed { color: #3fb950; }
+    .history-icon.ended { color: #484f58; }
+
+    .history-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .history-repo {
+      font-weight: 600;
+      color: #b1bac4;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .history-task {
+      color: #484f58;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 1px;
+    }
+
+    .history-time {
+      flex-shrink: 0;
+      color: #30363d;
+      font-size: 11px;
+    }
+
     /* Empty state */
     .empty {
       display: flex;
@@ -254,20 +368,18 @@
       align-items: center;
       justify-content: center;
       padding: 60px 20px;
-      color: #444;
+      color: #30363d;
       gap: 8px;
     }
 
     .empty .icon { font-size: 36px; opacity: 0.3; }
     .empty .text { font-size: 14px; }
-    .empty .sub { font-size: 12px; color: #333; }
+    .empty .sub { font-size: 12px; color: #21262d; }
 
     /* Status bar */
     .statusbar {
       position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
+      bottom: 0; left: 0; right: 0;
       padding: 4px 20px;
       display: flex;
       justify-content: space-between;
@@ -278,26 +390,25 @@
       transition: background 0.3s;
     }
 
-    .statusbar.has-waiting { background: #b8860b; }
-    .statusbar.all-working { background: #0f3460; }
-    .statusbar.idle { background: #2a2a4a; color: #666; }
-
+    .statusbar.has-waiting { background: #7c6400; }
+    .statusbar.all-working { background: #0d419d; }
+    .statusbar.idle { background: #161b22; color: #484f58; }
     .statusbar span { opacity: 0.9; }
 
-    /* Notification permission banner */
+    /* Notification banner */
     .notif-banner {
-      background: #2a2a4a;
-      border: 1px solid #333366;
+      background: #21262d;
+      border: 1px solid #30363d;
       padding: 8px 20px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       font-size: 12px;
-      color: #aaa;
+      color: #8b949e;
     }
 
     .notif-banner button {
-      background: #4da6ff;
+      background: #58a6ff;
       border: none;
       color: #fff;
       padding: 4px 12px;
@@ -306,19 +417,15 @@
       font-size: 12px;
     }
 
-    .notif-banner button:hover { background: #3b8fd4; }
-    .notif-banner .close {
-      background: none;
-      color: #666;
-      font-size: 16px;
-      padding: 0 4px;
-    }
+    .notif-banner button:hover { background: #388bfd; }
+    .notif-banner .close { background: none; color: #484f58; font-size: 16px; padding: 0 4px; }
   </style>
 </head>
 <body>
   <div class="header">
-    <span class="title">Claude Queue</span>
+    <span class="title">Command Centre</span>
     <span class="badge none" id="badge">0</span>
+    <div class="stats-chips" id="stats-chips"></div>
     <div class="actions">
       <button onclick="clearDone()" title="Clear completed sessions">Clear Done</button>
       <button onclick="refresh()" title="Refresh now">Refresh</button>
@@ -333,9 +440,21 @@
     </div>
   </div>
 
-  <div class="stats" id="stats"></div>
-
-  <div class="cards" id="cards"></div>
+  <div class="main">
+    <div class="panel-active">
+      <div class="panel-title">Active Sessions</div>
+      <div id="cards"></div>
+    </div>
+    <div class="panel-history">
+      <div class="panel-title">Completed</div>
+      <div class="stats-grid" id="stats-grid">
+        <div class="stat-box"><div class="number" id="stat-today">0</div><div class="label">Today</div></div>
+        <div class="stat-box"><div class="number" id="stat-week">0</div><div class="label">This Week</div></div>
+        <div class="stat-box"><div class="number" id="stat-total">0</div><div class="label">All Time</div></div>
+      </div>
+      <div class="history-list" id="history-list"></div>
+    </div>
+  </div>
 
   <div class="statusbar idle" id="statusbar">
     <span id="status-text">No active sessions</span>
@@ -349,13 +468,12 @@
     let previousWaiting = new Set();
     let notifDismissed = false;
 
-    // Check notification permission on load
     if ('Notification' in window && Notification.permission === 'default' && !notifDismissed) {
       document.getElementById('notif-banner').style.display = 'flex';
     }
 
     function enableNotifications() {
-      Notification.requestPermission().then(p => {
+      Notification.requestPermission().then(() => {
         document.getElementById('notif-banner').style.display = 'none';
       });
     }
@@ -371,7 +489,8 @@
       const mins = Math.floor(secs / 60);
       if (mins < 60) return `${mins}m ago`;
       const hrs = Math.floor(mins / 60);
-      return hrs < 24 ? `${hrs}h ago` : `${Math.floor(hrs / 24)}d ago`;
+      if (hrs < 24) return `${hrs}h ago`;
+      return `${Math.floor(hrs / 24)}d ago`;
     }
 
     function waitingDuration(ts) {
@@ -391,13 +510,15 @@
     function render(queue) {
       const cardsEl = document.getElementById('cards');
       const badge = document.getElementById('badge');
-      const statsEl = document.getElementById('stats');
       const statusbar = document.getElementById('statusbar');
       const statusText = document.getElementById('status-text');
 
       const jobs = (queue.jobs || []).sort((a, b) => {
         const d = (statusOrder[a.status] || 9) - (statusOrder[b.status] || 9);
-        return d !== 0 ? d : new Date(b.timestamp) - new Date(a.timestamp);
+        if (d !== 0) return d;
+        // Waiting: oldest first (longest waiting at top). Others: newest first.
+        if (a.status === 'waiting') return new Date(a.timestamp) - new Date(b.timestamp);
+        return new Date(b.timestamp) - new Date(a.timestamp);
       });
       currentJobs = jobs;
 
@@ -405,15 +526,14 @@
       const working = jobs.filter(j => j.status === 'working');
       const done = jobs.filter(j => j.status === 'done');
 
-      // Desktop notifications for newly waiting sessions
+      // Desktop notifications
       if ('Notification' in window && Notification.permission === 'granted') {
         const jobKey = j => j.sessionId || j.repoPath;
         const currentWaiting = new Set(waiting.map(jobKey));
         for (const job of waiting) {
           if (!previousWaiting.has(jobKey(job))) {
-            new Notification('Claude Queue', {
-              body: `${job.repo} needs attention`,
-              icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><circle cx="16" cy="16" r="14" fill="%23f0a500"/></svg>',
+            new Notification('Command Centre', {
+              body: `${job.repo} needs attention${job.task ? ': ' + job.task.slice(0, 60) : ''}`,
               tag: jobKey(job),
               requireInteraction: false
             });
@@ -425,15 +545,14 @@
       // Badge
       badge.textContent = waiting.length;
       badge.className = waiting.length > 0 ? 'badge' : 'badge none';
-      document.title = waiting.length > 0 ? `(${waiting.length}) Claude Queue` : 'Claude Queue';
+      document.title = waiting.length > 0 ? `(${waiting.length}) Command Centre` : 'Command Centre';
 
-      // Stats bar
-      const parts = [];
-      if (waiting.length > 0) parts.push(`<div class="stat"><div class="dot waiting"></div>${waiting.length} waiting</div>`);
-      if (working.length > 0) parts.push(`<div class="stat"><div class="dot working"></div>${working.length} working</div>`);
-      if (done.length > 0) parts.push(`<div class="stat">${done.length} done</div>`);
-      if (jobs.length > 0) parts.push(`<div class="stat" style="margin-left:auto">${jobs.length} total</div>`);
-      statsEl.innerHTML = parts.join('');
+      // Stats chips in header
+      const chips = [];
+      if (waiting.length > 0) chips.push(`<span class="stats-chip"><strong>${waiting.length}</strong> waiting</span>`);
+      if (working.length > 0) chips.push(`<span class="stats-chip"><strong>${working.length}</strong> working</span>`);
+      if (done.length > 0) chips.push(`<span class="stats-chip">${done.length} done</span>`);
+      document.getElementById('stats-chips').innerHTML = chips.join('');
 
       // Status bar
       if (waiting.length > 0) {
@@ -447,7 +566,7 @@
         statusText.textContent = jobs.length > 0 ? `${jobs.length} sessions` : 'No active sessions';
       }
 
-      // Empty state
+      // Cards
       if (jobs.length === 0) {
         cardsEl.innerHTML = `
           <div class="empty">
@@ -496,6 +615,7 @@
           <div class="indicator ${status}"></div>
           <div class="card-info">
             <div class="repo-name">${esc(job.repo)}</div>
+            ${job.task ? `<div class="card-task">${esc(job.task)}</div>` : ''}
             <div class="card-message">${esc(job.message || status)}</div>
           </div>
           <div class="card-meta">
@@ -505,10 +625,46 @@
         </div>`;
     }
 
+    // --- History & Stats ---
+
+    function renderStats(stats) {
+      document.getElementById('stat-today').textContent = stats.today;
+      document.getElementById('stat-week').textContent = stats.thisWeek;
+      document.getElementById('stat-total').textContent = stats.total;
+    }
+
+    function renderHistory(data) {
+      const list = document.getElementById('history-list');
+      const items = data.history || [];
+
+      if (items.length === 0) {
+        list.innerHTML = '<div style="text-align:center;color:#30363d;padding:20px;font-size:12px;">No completed tasks yet</div>';
+        return;
+      }
+
+      list.innerHTML = items.map(h => {
+        const isCompleted = h.endReason === 'completed';
+        const iconClass = isCompleted ? 'completed' : 'ended';
+        const icon = isCompleted ? '&#10003;' : '&#10005;';
+        const taskSnippet = h.task ? h.task.slice(0, 80) : h.message ? h.message.slice(0, 60) : 'No description';
+
+        return `
+          <div class="history-item" onclick="focusRepo('${esc(h.repoPath)}')" title="${esc(h.repoPath)}">
+            <div class="history-icon ${iconClass}">${icon}</div>
+            <div class="history-info">
+              <div class="history-repo">${esc(h.repo)}</div>
+              <div class="history-task">${esc(taskSnippet)}</div>
+            </div>
+            <div class="history-time">${timeAgo(h.completedAt)}</div>
+          </div>`;
+      }).join('');
+    }
+
+    // --- Actions ---
+
     function focusByIndex(idx) {
       const job = currentJobs[idx];
-      if (!job) return;
-      focusWindow(job.repoPath);
+      if (job) focusRepo(job.repoPath);
     }
 
     function dismissByIndex(idx) {
@@ -516,16 +672,12 @@
       if (job) dismissJob(job);
     }
 
-    async function focusWindow(repoPath) {
-      try {
-        await fetch(API + '/focus', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ repoPath })
-        });
-      } catch (e) {
-        console.error('Focus error:', e);
-      }
+    function focusRepo(repoPath) {
+      fetch(API + '/focus', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ repoPath })
+      }).catch(console.error);
     }
 
     async function dismissJob(job) {
@@ -552,8 +704,24 @@
       } catch {}
     }
 
+    async function refreshHistory() {
+      try {
+        const [statsRes, histRes] = await Promise.all([
+          fetch(API + '/stats'),
+          fetch(API + '/history')
+        ]);
+        renderStats(await statsRes.json());
+        renderHistory(await histRes.json());
+      } catch {}
+    }
+
+    // Initial load
     refresh();
+    refreshHistory();
+
+    // Polling: queue every 2s, history/stats every 10s
     setInterval(refresh, 2000);
+    setInterval(refreshHistory, 10000);
   </script>
 </body>
 </html>

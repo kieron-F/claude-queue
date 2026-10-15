@@ -4,12 +4,20 @@ const path = require('path');
 const os = require('os');
 
 const QUEUE_FILE = path.join(os.homedir(), '.claude', 'job-queue.json');
+const AUTO_DONE_HOURS = 2;
 
 function readQueue() {
   try {
     const raw = fs.readFileSync(QUEUE_FILE, 'utf-8');
     const data = JSON.parse(raw);
     if (!data || !Array.isArray(data.jobs)) return { jobs: [] };
+    // Apply auto-done for stale waiting tasks (matches queue.js logic)
+    const cutoff = Date.now() - (AUTO_DONE_HOURS * 60 * 60 * 1000);
+    for (const job of data.jobs) {
+      if (job.status === 'waiting' && new Date(job.timestamp).getTime() < cutoff) {
+        job.status = 'done';
+      }
+    }
     return data;
   } catch {
     return { jobs: [] };
@@ -145,13 +153,21 @@ class QueueViewProvider {
     overflow: hidden;
     text-overflow: ellipsis;
   }
-  .message {
+  .task {
     font-size: 0.85em;
-    opacity: 0.6;
+    opacity: 0.75;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     margin-top: 2px;
+  }
+  .message {
+    font-size: 0.8em;
+    opacity: 0.45;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 1px;
   }
 
   .time {
@@ -244,6 +260,7 @@ class QueueViewProvider {
         '<div class="indicator ' + status + '"></div>' +
         '<div class="info">' +
           '<div class="repo">' + esc(job.repo) + '</div>' +
+          (job.task ? '<div class="task">' + esc(job.task) + '</div>' : '') +
           '<div class="message">' + esc(job.message || status) + '</div>' +
         '</div>' +
         '<div class="time ' + status + '">' + timeAgo(job.timestamp) + '</div>' +
